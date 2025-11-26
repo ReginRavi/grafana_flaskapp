@@ -1,0 +1,84 @@
+// Grafana Alloy Configuration
+// This configuration replaces node_exporter functionality
+
+// ==============================================================================
+// Component 1: Unix System Metrics Exporter (replaces node_exporter)
+// ==============================================================================
+prometheus.exporter.unix "local" {
+  // Collect all available system metrics
+  // This is functionally equivalent to node_exporter
+  // Metrics include: CPU, memory, disk, network, filesystem, etc.
+}
+
+// ==============================================================================
+// Component 2: Scrape Unix Exporter Metrics
+// ==============================================================================
+prometheus.scrape "unix_metrics" {
+  targets    = prometheus.exporter.unix.local.targets
+  forward_to = [prometheus.remote_write.prometheus.receiver]
+  
+  scrape_interval = "15s"
+  scrape_timeout  = "10s"
+  
+  // Add job label
+  job_name = "alloy-unix"
+}
+
+// ==============================================================================
+// Component 3: Scrape Prometheus Itself
+// ==============================================================================
+prometheus.scrape "prometheus_metrics" {
+  targets = [{
+    __address__ = "localhost:19090",
+  }]
+  forward_to = [prometheus.remote_write.prometheus.receiver]
+  
+  scrape_interval = "15s"
+  scrape_timeout  = "10s"
+  
+  job_name = "prometheus"
+}
+
+// ==============================================================================
+// Component 4: Remote Write to Prometheus
+// ==============================================================================
+prometheus.remote_write "prometheus" {
+  endpoint {
+    url = "http://localhost:19090/api/v1/write"
+    
+    // Match the external labels from Prometheus config
+    headers = {
+      // If needed, add custom headers here
+    }
+    
+    queue_config {
+      capacity          = 10000
+      max_shards        = 10
+      min_shards        = 1
+      max_samples_per_send = 5000
+      batch_send_deadline  = "5s"
+    }
+  }
+  
+  // Add external labels to match Prometheus configuration
+  external_labels = {
+    cluster     = "local-mac",
+    environment = "development",
+  }
+}
+
+// ==============================================================================
+// Component 5: Scrape Flask Demo Application
+// ==============================================================================
+prometheus.scrape "flask_app" {
+  targets = [{
+    __address__ = "localhost:8080",
+  }]
+  forward_to = [prometheus.remote_write.prometheus.receiver]
+  
+  scrape_interval = "15s"
+  scrape_timeout  = "10s"
+  
+  job_name = "flask-demo"
+}
+

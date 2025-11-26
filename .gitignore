@@ -1,0 +1,19 @@
+# Logs and system files
+*.log
+nohup.out
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+
+# Flask runtime
+flask_demo/flask.log
+flask_demo/__pycache__/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
