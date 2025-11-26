@@ -4,6 +4,7 @@ This directory contains the configuration and documentation for the migration fr
 
 ## Quick Start
 
+![alt text](Dashboard.png)
 ### View Alloy UI
 ```bash
 open http://localhost:12345
